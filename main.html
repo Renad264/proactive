@@ -8,14 +8,14 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
   
-  /* تدرج لوني رقيق جداً يشمل البرتقالي وألوان الباليت */
+  
   body { 
     font-family: 'Tajawal', sans-serif; 
     background: linear-gradient(135deg, 
         rgba(230, 230, 230, 0.4) 0%, 
         rgba(104, 66, 226, 0.05) 25%, 
         rgba(40, 231, 196, 0.05) 50%, 
-        rgba(255, 165, 0, 0.05) 75%, /* إضافة اللون البرتقالي بنسبة خفيفة جداً */
+        rgba(255, 165, 0, 0.05) 75%, 
         rgba(230, 230, 230, 0.4) 100%
     );
     background-attachment: fixed;
@@ -34,7 +34,7 @@
   #ZoneE { top: 55%; left: 40%; width: 30%; height: 40%; }
   .worker-dot { width: 14px; height: 14px; background: #f00; border-radius: 50%; position: absolute; transition: all 0.8s ease; }
   
-  /* تنسيق الهيدر المكبّر */
+ 
   .custom-purple-header { 
     background-color: #6842E2; 
     height: 120px; 
@@ -82,7 +82,7 @@
             <th class="p-3">ID</th>
             <th class="p-3 text-right">الاسم</th>
             <th class="p-3">الحالة</th>
-            <th class="p-3">الوردية</th>
+            <th class="p-3">يعمل منذس</th>
             <th class="p-3">الموقع</th>
             <th class="p-3">عرض</th>
           </tr>
@@ -182,7 +182,7 @@
 </div>
 
 <script>
-// Logic remains unchanged as requested
+
 const zones = ["ZoneA", "ZoneB", "ZoneC", "ZoneD", "ZoneE"];
 const sups = ["م. عبدالله أيمن", "م. سلطان حمد", "م. فيصل علي", "م. فهد حسن", "م. رائد سامي"];
 const namesAr = ["خالد", "أحمد", "عمر", "سعد", "ماجد", "ياسر", "سلطان", "فيصل", "سعود", "نايف"];
@@ -255,7 +255,7 @@ function openWorkerModal(id){
     activeWorker = workers.find(x => x.id === id);
     document.getElementById("det-name").textContent = activeWorker.name;
     document.getElementById("det-id").textContent = "Worker ID: " + activeWorker.id;
-    document.getElementById("det-shift").textContent = "الوردية الحالية: " + activeWorker.shift;
+    document.getElementById("det-shift").textContent = "يعمل منذ: " + activeWorker.shift;
     document.getElementById("det-loc").textContent = activeWorker.location;
     document.getElementById("det-sup").textContent = activeWorker.sup;
     document.getElementById("modalWorker").classList.remove("hidden");
