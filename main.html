@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8" />
-<title>ProActive Safety - Ultimate Recovery</title>
+<title>ProActive Safety - Executive Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
@@ -16,36 +16,48 @@
   .detailed-map { width: 100%; height: 140px; background: #0f172a; border-radius: 15px; position: relative; border: 1px solid #334155; }
   .worker-marker { width: 12px; height: 12px; border-radius: 50%; position: absolute; border: 2px solid white; box-shadow: 0 0 10px rgba(255,255,255,0.5); z-index: 20; transition: all 1s ease; }
   .live-dot { width: 8px; height: 8px; background: #ef4444; border-radius: 50%; display: inline-block; margin-left: 5px; animation: blink 1s infinite; }
+  .progress-bg { background: rgba(255,255,255,0.1); border-radius: 99px; height: 6px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 99px; transition: width 1s ease; }
+  
+  /* ستايلات الرسوم البيانية للداشبورد الجديد */
+  .bar-container { display: flex; align-items: flex-end; justify-content: space-between; height: 100px; gap: 4px; }
+  .bar { width: 100%; background: linear-gradient(to top, #6842E2, #28E7C4); border-radius: 4px 4px 0 0; transition: height 1s ease-in-out; position: relative; }
+  .bar:hover { opacity: 0.8; }
+  .trend-up { color: #10b981; } .trend-down { color: #ef4444; }
+  
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 </style>
 </head>
 <body class="p-6">
 
-<header class="bg-gradient-to-r from-[#6842E2] to-[#5833d1] text-white px-8 h-[90px] rounded-3xl mb-8 flex justify-between items-center shadow-2xl relative">
-  <div class="w-1/4"><h1 class="text-xl font-black uppercase tracking-widest">ProActive</h1></div>
-  <div class="absolute inset-y-0 left-1/2 transform -translate-x-1/2 flex items-center">
-    <img src="proactivewhite.png" alt="Logo" class="h-12 object-contain">
+<header class="bg-gradient-to-r from-[#6842E2] to-[#5833d1] text-white px-8 h-[90px] rounded-3xl mb-8 flex justify-between items-center shadow-2xl relative overflow-hidden">
+  
+  <div class="w-1/4">
+      <button onclick="openExecDash()" class="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all shadow-lg transform hover:scale-105">
+          <span class="text-lg">📈</span> التحليل الاستراتيجي الشامل
+      </button>
   </div>
-  <div class="w-1/4 text-left font-bold text-[11px] bg-white/10 px-4 py-2 rounded-full border border-white/20 uppercase">Safety Command Center</div>
+  
+  <div class="absolute inset-y-0 left-1/2 transform -translate-x-1/2 flex items-center">
+    <img src="proactivewhite.png" alt="Logo" class="h-full scale-[1.8] object-contain drop-shadow-xl">
+  </div>
+  
+  <div class="w-1/4 text-left">
+    <span class="text-xl font-black text-[#fb923c] uppercase tracking-widest">MVP- موقع تجريبي</span>
+  </div>
 </header>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
   <section class="pro-card shadow-lg">
     <div class="p-4 border-b border-red-500/20 bg-red-500/10 flex flex-col gap-4">
         <h2 class="font-bold text-red-500 flex items-center gap-2 text-sm"><span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> عمال في خطر</h2>
         <div class="flex gap-2">
-            <button onclick="switchWorkerFilter('active')" id="btn-w-active" class="flex-1 py-2 text-[11px] font-bold rounded-xl bg-purple-blue text-white shadow-lg">الحالات الحالية</button>
-            <button onclick="switchWorkerFilter('completed')" id="btn-w-completed" class="flex-1 py-2 text-[11px] font-bold rounded-xl bg-white/5 text-gray-400">تمت مباشرتها</button>
+            <button onclick="switchWFilter('active')" id="bw-act" class="flex-1 py-2 text-[11px] font-bold rounded-xl bg-purple-blue text-white shadow-lg">الحالات الحالية</button>
+            <button onclick="switchWFilter('completed')" id="bw-done" class="flex-1 py-2 text-[11px] font-bold rounded-xl bg-white/5 text-gray-400">تمت مباشرتها</button>
         </div>
     </div>
     <div class="flex-1 overflow-y-auto custom-scroll">
-      <table class="w-full text-[11px] text-center">
-        <thead class="bg-black/20 sticky top-0 text-turquoise">
-          <tr><th class="p-4">الرقم</th><th class="p-4 text-right">الاسم</th><th class="p-4">الحالة</th><th class="p-4">الموقع</th><th class="p-4">الوقت</th><th class="p-4">عرض</th></tr>
-        </thead>
-        <tbody id="workersList" class="divide-y divide-white/5 text-gray-300"></tbody>
-      </table>
+      <table class="w-full text-[11px] text-center"><thead class="bg-black/20 sticky top-0 text-turquoise"><tr><th class="p-4">الرقم</th><th class="p-4 text-right">الاسم</th><th class="p-4">الحالة</th><th class="p-4">الموقع</th><th class="p-4">الوقت</th><th class="p-4">عرض</th></tr></thead><tbody id="wList" class="divide-y divide-white/5 text-gray-300"></tbody></table>
     </div>
   </section>
 
@@ -53,233 +65,388 @@
     <div class="p-4 border-b border-orange-500/20 bg-orange-500/10 flex flex-col gap-4">
         <h2 class="font-bold text-orange-400 text-sm flex items-center gap-2">🚨 تنبيهات المخاطر البيئية</h2>
         <div class="flex gap-2">
-            <button onclick="switchZoneFilter('active')" id="btn-z-active" class="flex-1 py-2 text-[11px] font-bold rounded-xl bg-purple-blue text-white shadow-lg">نشطة</button>
-            <button onclick="switchZoneFilter('completed')" id="btn-z-completed" class="flex-1 py-2 text-[11px] font-bold rounded-xl bg-white/5 text-gray-400">مغلقة</button>
+            <button onclick="switchZFilter('active')" id="bz-act" class="flex-1 py-2 text-[11px] font-bold rounded-xl bg-purple-blue text-white shadow-lg">نشطة</button>
+            <button onclick="switchZFilter('completed')" id="bz-done" class="flex-1 py-2 text-[11px] font-bold rounded-xl bg-white/5 text-gray-400">مغلقة</button>
         </div>
     </div>
     <div class="flex-1 overflow-y-auto custom-scroll">
-      <table class="w-full text-[11px] text-center">
-        <thead class="bg-black/20 sticky top-0 text-turquoise">
-          <tr><th class="p-4">المنطقة</th><th class="p-4">التحذير</th><th class="p-4">الخطر</th><th class="p-4">العمال</th><th class="p-4">تحليل</th></tr>
-        </thead>
-        <tbody id="zonesList" class="divide-y divide-white/5 text-gray-300"></tbody>
-      </table>
+      <table class="w-full text-[11px] text-center"><thead class="bg-black/20 sticky top-0 text-turquoise"><tr><th class="p-4">المنطقة</th><th class="p-4">التحذير</th><th class="p-4">الخطر</th><th class="p-4">العمال</th><th class="p-4">تحليل</th></tr></thead><tbody id="zList" class="divide-y divide-white/5 text-gray-300"></tbody></table>
     </div>
   </section>
 
   <section class="pro-card shadow-lg">
     <div class="p-4 border-b border-purple-500/20 bg-purple-500/10 flex justify-between items-center text-right">
-        <h2 class="font-bold text-purple-400 text-sm">📊 إحصائيات المنطقة الذكية</h2>
-        <select onchange="loadRegionStats(this.value)" class="bg-black/40 text-turquoise text-[11px] px-2 py-1 rounded border border-purple-500/30 outline-none">
-            <option value="A">المنطقة A</option><option value="B">المنطقة B</option><option value="C">المنطقة C</option><option value="D">المنطقة D</option><option value="E">المنطقة E</option>
-        </select>
+        <h2 class="font-bold text-purple-400 text-sm">📊 التحليل الذكي للمناطق</h2>
+        <select onchange="loadReg(this.value)" class="bg-black/40 text-turquoise text-[11px] px-3 py-1.5 rounded-lg border border-purple-500/30 outline-none"><option value="A">المنطقة A (الإنتاج)</option><option value="B">المنطقة B (التخزين)</option><option value="C">المنطقة C (المعالجة)</option><option value="D">المنطقة D (الشحن)</option><option value="E">المنطقة E (الإدارة)</option></select>
     </div>
-    <div class="p-6 flex-1 flex flex-col gap-4 text-right overflow-y-auto custom-scroll">
-        <div class="grid grid-cols-2 gap-3">
-            <div class="bg-white/5 p-4 rounded-2xl border border-white/5"><span class="text-[10px] text-gray-400 block mb-1">إصابات سابقة</span><span id="reg-injuries" class="text-2xl font-black text-white">--</span></div>
-            <div class="bg-white/5 p-4 rounded-2xl border border-white/5"><span class="text-[10px] text-gray-400 block mb-1">تحذيرات الحساسات</span><span id="reg-alerts" class="text-2xl font-black text-orange-400">--</span></div>
+    <div class="p-6 flex-1 flex flex-col gap-5 text-right overflow-y-auto custom-scroll">
+        <div class="grid grid-cols-3 gap-3 text-center">
+            <div class="bg-white/5 p-3 rounded-2xl border border-white/5"><span class="text-[9px] text-gray-400 block mb-1">الحوادث</span><span id="r-inj" class="text-xl font-black text-white">--</span></div>
+            <div class="bg-white/5 p-3 rounded-2xl border border-white/5"><span class="text-[9px] text-gray-400 block mb-1">الإنذارات</span><span id="r-alt" class="text-xl font-black text-orange-400">--</span></div>
+            <div class="bg-white/5 p-3 rounded-2xl border border-white/5"><span class="text-[9px] text-gray-400 block mb-1">الامتثال</span><span id="r-comp" class="text-xl font-black text-emerald-400">--</span></div>
         </div>
-        <div class="bg-black/30 p-4 rounded-2xl border border-white/5">
-            <span class="text-[10px] text-gray-400 block mb-2 uppercase tracking-tighter">نسبة وقوع خطر (تنبؤ AI)</span>
-            <div class="flex items-center gap-4">
-                <span id="reg-risk-val" class="text-3xl font-black text-red-500 w-16">0%</span>
-                <div class="flex-1 bg-white/10 h-2 rounded-full overflow-hidden"><div id="reg-risk-bar" class="bg-red-500 h-full transition-all duration-1000" style="width: 0%"></div></div>
+        <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+            <h4 class="text-[10px] text-gray-400 mb-3 font-bold uppercase">توزيع المخاطر</h4>
+            <div class="flex flex-col gap-3">
+                <div><div class="flex justify-between text-[9px] text-gray-300 mb-1"><span>كيميائية</span><span id="r-chem-val">0%</span></div><div class="progress-bg"><div id="r-chem-bar" class="progress-fill bg-purple-500" style="width:0%"></div></div></div>
+                <div><div class="flex justify-between text-[9px] text-gray-300 mb-1"><span>ميكانيكية</span><span id="r-mech-val">0%</span></div><div class="progress-bg"><div id="r-mech-bar" class="progress-fill bg-orange-500" style="width:0%"></div></div></div>
             </div>
         </div>
-        <div class="bg-purple-blue/10 p-4 rounded-2xl border border-purple-blue/20">
-            <h4 class="font-bold text-purple-300 text-[10px] mb-1 flex items-center gap-2">🤖 Predictive Recommendation:</h4>
-            <p id="reg-ai-msg" class="text-[11px] text-gray-300 italic leading-relaxed"></p>
-        </div>
+        <div class="bg-purple-blue/10 p-4 rounded-2xl border border-purple-blue/20"><h4 class="font-bold text-purple-300 text-[10px] mb-2">🤖 AI Safety Advisor:</h4><p id="r-ai" class="text-[11px] text-gray-300 italic leading-relaxed"></p></div>
+        <button class="w-full bg-white/5 hover:bg-white/10 text-turquoise border border-turquoise/20 font-bold py-3 rounded-xl text-xs flex justify-center items-center gap-2 mt-auto">📥 تحميل التقرير (PDF)</button>
     </div>
   </section>
 
   <section class="pro-card shadow-lg bg-black/20 text-right">
-    <div class="p-4 border-b border-white/5 bg-turquoise/5"><h2 class="font-bold text-turquoise text-sm">📡 حالة شبكة الحساسات</h2></div>
-    <div class="p-8 grid grid-cols-3 gap-3 text-center">
-         <div class="bg-white/5 p-4 rounded-xl border border-white/5"><span class="text-2xl font-bold text-white block">342</span><span class="text-[9px] text-gray-500 uppercase">Sensors</span></div>
-         <div class="bg-white/5 p-4 rounded-xl border border-white/5"><span class="text-2xl font-bold text-white block">120</span><span class="text-[9px] text-gray-500 uppercase">Wearables</span></div>
-         <div class="bg-white/5 p-4 rounded-xl border border-white/5"><span class="text-2xl font-bold text-turquoise block">18</span><span class="text-[9px] text-gray-500 uppercase">Nodes</span></div>
+    <div class="p-4 border-b border-white/5 bg-turquoise/5 flex justify-between items-center">
+        <h2 class="font-bold text-turquoise text-sm">📡 مركز مراقبة الشبكة</h2>
+        <div class="flex items-center gap-2"><span class="text-[9px] text-gray-600">Latency: <b class="text-gray-800">24ms</b></span><span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span></div>
+    </div>
+    <div class="flex-1 flex flex-col p-6">
+        <div class="grid grid-cols-3 gap-3 text-center mb-6">
+             <div class="bg-white/5 p-4 rounded-xl border border-white/5"><span class="text-2xl font-bold text-white block">342</span><span class="text-[9px] text-gray-500">SENSORS</span></div>
+             <div class="bg-white/5 p-4 rounded-xl border border-white/5"><span class="text-2xl font-bold text-white block">120</span><span class="text-[9px] text-gray-500">WEARABLES</span></div>
+             <div class="bg-white/5 p-4 rounded-xl border border-white/5"><span class="text-2xl font-bold text-red-500 block">3</span><span class="text-[9px] text-gray-500">ERRORS</span></div>
+        </div>
+        <div class="bg-red-500/10 p-4 rounded-2xl border border-red-500/20 mb-4 flex items-center gap-3 animate-pulse"><span class="text-2xl">📶</span><div><h3 class="text-white text-xs font-bold">تحذير انقطاع</h3><p class="text-[10px] text-red-300">فقدان الاتصال بـ 3 أجهزة</p></div></div>
+        <div class="bg-black/30 p-4 rounded-2xl border border-white/5 mb-4"><div class="flex justify-between text-[10px] text-gray-400 mb-1"><span>استقرار الشبكة</span><span>98.5%</span></div><div class="progress-bg"><div class="progress-fill bg-turquoise" style="width:98.5%"></div></div></div>
+        <button onclick="openIoTDash()" class="w-full bg-[#10b981] hover:bg-emerald-400 text-white font-black py-4 rounded-2xl mt-auto shadow-lg transition-all flex justify-center items-center gap-2"><span>🔧</span> فتح لوحة تحكم الصيانة</button>
     </div>
   </section>
 </div>
 
-<div id="workerModal" class="hidden fixed inset-0 bg-black/95 backdrop-blur-md flex items-center justify-center z-[300] p-4 text-right">
-    <div class="bg-[#1f2937] w-full max-w-5xl rounded-[2rem] shadow-2xl border border-white/10 overflow-hidden flex flex-col md:flex-row h-[85vh]">
-        <div class="w-full md:w-1/3 bg-black/20 p-6 border-l border-white/5 flex flex-col">
-            <h3 class="text-gray-400 text-[10px] mb-4 font-bold uppercase tracking-widest">Health Profile</h3>
-            <div class="info-box"><p class="text-[9px] text-gray-500 uppercase">الاسم</p><p id="w-modal-name" class="font-bold text-white text-lg"></p></div>
-            <div class="info-box"><p class="text-[9px] text-gray-500 uppercase">المشرف</p><p id="w-modal-sup" class="text-xs font-bold text-orange-400"></p></div>
-            <div class="info-box"><p class="text-[9px] text-gray-500 uppercase">الحالة الطبية</p><p id="w-modal-med" class="text-xs font-bold text-red-400"></p></div>
-            <p class="text-[10px] text-turquoise mt-4 mb-2 font-bold">📍 الموقع الميداني:</p>
-            <div class="detailed-map"><div id="w-modal-marker" class="worker-marker"></div></div>
+<div id="execModal" class="hidden fixed inset-0 bg-[#0f172a]/95 backdrop-blur-2xl flex items-center justify-center z-[500] p-6 text-right">
+    <div class="bg-[#1e293b] w-full h-full max-w-[95%] rounded-[3rem] shadow-2xl border border-white/10 overflow-hidden flex flex-col">
+        <div class="p-8 border-b border-white/5 flex justify-between items-center bg-gradient-to-r from-[#6842E2]/20 to-transparent">
+            <div>
+                <h2 class="text-4xl font-black text-white mb-2">لوحة القيادة الاستراتيجية العليا</h2>
+                <p class="text-gray-400 text-sm">ProActive Safety Executive View • تقرير مباشر</p>
+            </div>
+            <div class="flex gap-4">
+                <div class="flex bg-black/40 rounded-xl p-1 border border-white/10">
+                    <button onclick="updateExecTime('1M')" class="px-6 py-2 rounded-lg text-xs font-bold text-white hover:bg-white/10 transition-all bg-purple-600">شهر</button>
+                    <button onclick="updateExecTime('3M')" class="px-6 py-2 rounded-lg text-xs font-bold text-gray-400 hover:bg-white/10 transition-all">3 أشهر</button>
+                    <button onclick="updateExecTime('6M')" class="px-6 py-2 rounded-lg text-xs font-bold text-gray-400 hover:bg-white/10 transition-all">6 أشهر</button>
+                    <button onclick="updateExecTime('1Y')" class="px-6 py-2 rounded-lg text-xs font-bold text-gray-400 hover:bg-white/10 transition-all">سنة</button>
+                </div>
+                <button onclick="document.getElementById('execModal').classList.add('hidden')" class="bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-500 w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-all">✕</button>
+            </div>
         </div>
-        <div class="flex-1 p-8 flex flex-col gap-6 overflow-y-auto">
-            <div class="flex justify-between items-center"><h2 class="text-xl font-black text-white flex items-center gap-2"><span class="live-dot"></span> بيانات حيوية مباشرة</h2><button onclick="closeWorkerModal()" class="text-gray-400 text-2xl">✕</button></div>
-            <div class="grid grid-cols-3 gap-4 text-center">
-                <div class="bg-black/40 p-5 rounded-2xl border border-white/5"><span class="text-[9px] text-gray-500 block mb-1">BPM</span><span id="w-live-bpm" class="text-4xl font-black text-red-500">--</span></div>
-                <div class="bg-black/40 p-5 rounded-2xl border border-white/5"><span class="text-[9px] text-gray-500 block mb-1">BP (SYS/DIA)</span><span class="text-2xl font-black text-orange-400">133/85</span></div>
-                <div class="bg-black/40 p-5 rounded-2xl border border-white/5"><span class="text-[9px] text-gray-500 block mb-1">TEMP °C</span><span id="w-live-temp" class="text-4xl font-black text-turquoise">--</span></div>
+
+        <div class="flex-1 p-8 overflow-y-auto custom-scroll">
+            
+            <div class="grid grid-cols-4 gap-6 mb-8">
+                <div class="bg-black/20 p-6 rounded-3xl border border-white/5 hover:border-turquoise/30 transition-all">
+                    <span class="text-gray-400 text-xs block mb-2">مؤشر السلامة العام</span>
+                    <div class="flex justify-between items-end">
+                        <span id="kpi-score" class="text-5xl font-black text-white">94%</span>
+                        <span class="text-emerald-400 text-sm font-bold bg-emerald-500/10 px-2 py-1 rounded">+2.4% ▲</span>
+                    </div>
+                </div>
+                <div class="bg-black/20 p-6 rounded-3xl border border-white/5 hover:border-orange-500/30 transition-all">
+                    <span class="text-gray-400 text-xs block mb-2">إجمالي الحوادث (المتوافقة)</span>
+                    <div class="flex justify-between items-end">
+                        <span id="kpi-accidents" class="text-5xl font-black text-orange-400">12</span>
+                        <span class="text-emerald-400 text-sm font-bold bg-emerald-500/10 px-2 py-1 rounded">-15% ▼</span>
+                    </div>
+                </div>
+                <div class="bg-black/20 p-6 rounded-3xl border border-white/5 hover:border-purple-500/30 transition-all">
+                    <span class="text-gray-400 text-xs block mb-2">ساعات العمل الآمنة</span>
+                    <div class="flex justify-between items-end">
+                        <span id="kpi-hours" class="text-5xl font-black text-purple-400">14k</span>
+                        <span class="text-emerald-400 text-sm font-bold bg-emerald-500/10 px-2 py-1 rounded">+8.1% ▲</span>
+                    </div>
+                </div>
+                <div class="bg-black/20 p-6 rounded-3xl border border-white/5 hover:border-blue-500/30 transition-all">
+                    <span class="text-gray-400 text-xs block mb-2">التوفير في التكاليف (وقائي)</span>
+                    <div class="flex justify-between items-end">
+                        <span id="kpi-cost" class="text-5xl font-black text-blue-400">$42k</span>
+                        <span class="text-emerald-400 text-sm font-bold bg-emerald-500/10 px-2 py-1 rounded">Excellent</span>
+                    </div>
+                </div>
             </div>
-            <div class="bg-[#6842E2]/10 p-5 rounded-2xl border border-[#6842E2]/20"><h4 class="font-bold text-[#6842E2] text-[11px] mb-1">🤖 ProActive AI Recommendation:</h4><div id="w-live-ai" class="text-sm text-gray-300 italic"></div></div>
-            <div class="grid grid-cols-2 gap-4 text-center">
-                <div class="bg-white/5 p-4 rounded-xl border border-white/5"><span class="text-[10px] text-gray-400 block uppercase">Steps</span><span id="w-live-steps" class="text-2xl font-bold text-white">--</span></div>
-                <div class="bg-white/5 p-4 rounded-xl border border-white/5"><span class="text-[10px] text-gray-400 block uppercase">Kcal</span><span id="w-live-kcal" class="text-2xl font-bold text-white">--</span></div>
+
+            <div class="grid grid-cols-3 gap-6 mb-8 h-[350px]">
+                <div class="col-span-2 bg-black/20 p-6 rounded-3xl border border-white/5 flex flex-col">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold text-white">تحليل اتجاهات المخاطر (Risk Trends)</h3>
+                        <div class="flex gap-2 text-[10px]">
+                            <span class="flex items-center gap-1 text-gray-400"><span class="w-2 h-2 rounded-full bg-[#6842E2]"></span> متوقع</span>
+                            <span class="flex items-center gap-1 text-gray-400"><span class="w-2 h-2 rounded-full bg-[#28E7C4]"></span> فعلي</span>
+                        </div>
+                    </div>
+                    <div class="flex-1 bar-container px-4" id="chart-bars">
+                        </div>
+                    <div class="flex justify-between text-gray-500 text-[10px] mt-2 px-2">
+                        <span>يناير</span><span>فبراير</span><span>مارس</span><span>أبريل</span><span>مايو</span><span>يونيو</span>
+                        <span>يوليو</span><span>أغسطس</span><span>سبتمبر</span><span>أكتوبر</span><span>نوفمبر</span><span>ديسمبر</span>
+                    </div>
+                </div>
+
+                <div class="bg-black/20 p-6 rounded-3xl border border-white/5 flex flex-col items-center justify-center relative">
+                    <h3 class="font-bold text-white absolute top-6 right-6 text-sm">توزيع أنواع التنبيهات</h3>
+                    <div class="w-48 h-48 rounded-full border-[12px] border-black/40 relative flex items-center justify-center">
+                        <svg class="absolute inset-0 w-full h-full transform -rotate-90">
+                            <circle cx="50%" cy="50%" r="40%" stroke="#28E7C4" stroke-width="12" fill="transparent" stroke-dasharray="251" stroke-dashoffset="60"></circle>
+                            <circle cx="50%" cy="50%" r="40%" stroke="#6842E2" stroke-width="12" fill="transparent" stroke-dasharray="251" stroke-dashoffset="180" style="opacity:0.8"></circle>
+                        </svg>
+                        <div class="text-center">
+                            <span class="block text-3xl font-black text-white">Total</span>
+                            <span class="text-gray-400 text-xs">Analysis</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 mt-6 text-xs">
+                        <span class="text-[#28E7C4]">● بيئي (65%)</span>
+                        <span class="text-[#6842E2]">● صحي (35%)</span>
+                    </div>
+                </div>
             </div>
-            <button id="w-complete-btn" onclick="markWorkerSafe()" class="w-full bg-[#10b981] text-white font-black py-5 rounded-2xl mt-auto shadow-xl">تمت المباشرة وإغلاق الحالة</button>
+
+            <div class="bg-gradient-to-r from-purple-900/20 to-blue-900/20 p-8 rounded-3xl border border-white/10 flex gap-6 items-start">
+                <div class="bg-white/10 p-4 rounded-2xl text-3xl">🧠</div>
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-2">الملخص التنفيذي الذكي (AI Insight)</h3>
+                    <p id="exec-ai-text" class="text-gray-300 leading-relaxed text-sm">
+                        بناءً على تحليل البيانات للربع الحالي، نلاحظ تحسناً ملحوظاً في استجابة فرق الطوارئ بنسبة 15%. ومع ذلك، تشير البيانات التنبؤية إلى احتمالية ارتفاع مخاطر الإجهاد الحراري في المنطقة C خلال الشهر القادم. <br><br>
+                        <b class="text-turquoise">التوصية الاستراتيجية:</b> إعادة تخصيص ميزانية الصيانة الوقائية للتركيز على أنظمة التبريد في القطاعات الجنوبية، وتكثيف الدورات التدريبية للمشرفين الجدد.
+                    </p>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
 
-<div id="zoneModal" class="hidden fixed inset-0 bg-black/95 backdrop-blur-md flex items-center justify-center z-[300] p-4 text-right">
-    <div class="bg-[#1f2937] w-full max-w-5xl rounded-[2.5rem] shadow-2xl border border-white/10 overflow-hidden flex flex-col md:flex-row h-[85vh]">
+<div id="wModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[200] p-4 text-right">
+    <div class="bg-[#1f2937] w-full max-w-5xl rounded-[2rem] shadow-2xl border border-white/10 overflow-hidden flex flex-col md:flex-row h-[85vh]">
         <div class="w-full md:w-1/3 bg-black/20 p-6 border-l border-white/5 flex flex-col">
-            <h3 class="text-gray-400 text-[10px] mb-4 font-bold uppercase">Zone Intel</h3>
-            <div class="info-box"><p id="z-modal-title" class="font-bold text-white text-lg"></p></div>
-            <div class="info-box"><p id="z-modal-metric" class="text-xl font-black text-turquoise"></p></div>
-            <div class="info-box"><p class="text-[9px] text-gray-500 uppercase font-bold">العمال المتبقون</p><p id="z-modal-count" class="text-xl font-black text-white">0</p></div>
+            <h3 class="text-gray-400 text-xs mb-4 font-bold uppercase">الملف الشخصي</h3>
+            <div class="info-box"><p class="text-[9px] text-gray-500 uppercase">اسم العامل</p><p id="wm-name" class="font-bold text-white text-lg"></p></div>
+            <div class="info-box"><p class="text-[9px] text-gray-500 uppercase">الرقم التسلسلي</p><p id="wm-id" class="font-mono text-turquoise text-xs"></p></div>
+            <div class="info-box"><p class="text-[9px] text-gray-500 uppercase">المشرف المباشر</p><p id="wm-sup" class="text-xs font-bold text-orange-400"></p></div>
+            <div class="info-box"><p class="text-[9px] text-gray-500 uppercase">الحالة الصحية المزمنة</p><p id="wm-med" class="text-xs font-bold text-red-400"></p></div>
+            <p class="text-[10px] text-turquoise mt-4 mb-2 font-bold">📍 الموقع الميداني للعامل:</p>
+            <div class="detailed-map"><div id="wm-mark" class="worker-marker"></div></div>
         </div>
         <div class="flex-1 p-8 flex flex-col gap-6 overflow-y-auto">
-            <div class="flex justify-between items-center"><h2 class="text-xl font-black text-white">تحليل الإخلاء الذكي</h2><button onclick="closeZoneModal()" class="text-gray-400 text-2xl">✕</button></div>
-            <div id="z-evac-list" class="grid grid-cols-2 md:grid-cols-3 gap-3 bg-black/20 p-4 rounded-xl min-h-[100px]"></div>
-            <div class="bg-[#6842E2]/10 p-5 rounded-2xl border border-[#6842E2]/20"><h4 class="font-bold text-[#6842E2] text-[11px] mb-1">🤖 AI Zone Analysis:</h4><div id="z-modal-ai" class="text-sm text-gray-300 italic leading-relaxed"></div></div>
-            <button id="z-complete-btn" onclick="markZoneSafe()" class="w-full bg-[#10b981] text-white font-black py-5 rounded-2xl mt-auto shadow-xl transition-all">تم الإخلاء بالكامل وإغلاق البلاغ</button>
+            <div class="flex justify-between items-center"><h2 class="text-xl font-black text-white">بيانات الساعة الذكية</h2><button onclick="clsWM()" class="text-gray-400 text-2xl">✕</button></div>
+            <div class="grid grid-cols-3 gap-4">
+                <div class="bg-black/40 p-5 rounded-2xl text-center border border-white/5"><span class="text-[10px] text-gray-500 block mb-1">النبض</span><span id="wm-bpm" class="text-3xl font-black text-red-500">--</span></div>
+                <div class="bg-black/40 p-5 rounded-2xl text-center border border-white/5"><span class="text-[10px] text-gray-500 block mb-1">الضغط</span><span class="text-2xl font-black text-orange-400">133/85</span></div>
+                <div class="bg-black/40 p-5 rounded-2xl text-center border border-white/5"><span class="text-[10px] text-gray-500 block mb-1">الحرارة</span><span id="wm-temp" class="text-3xl font-black text-turquoise">--</span></div>
+            </div>
+            <div class="bg-[#6842E2]/10 p-5 rounded-2xl border border-[#6842E2]/20 shadow-inner">
+                <h4 class="font-bold text-[#6842E2] text-xs mb-2">🤖 توصية الذكاء الاصطناعي:</h4><div id="wm-ai" class="text-sm text-gray-300 italic"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white/5 p-4 rounded-xl text-center"><span class="text-[10px] text-gray-500 block mb-1 uppercase">إجمالي الخطوات</span><span id="wm-steps" class="text-xl font-bold text-white"></span></div>
+                <div class="bg-white/5 p-4 rounded-xl text-center"><span class="text-[10px] text-gray-500 block mb-1 uppercase">السعرات المحروقة</span><span id="wm-kcal" class="text-xl font-bold text-white"></span></div>
+            </div>
+            <button onclick="finW()" class="w-full bg-[#10b981] hover:bg-emerald-400 text-white font-black py-4 rounded-2xl shadow-xl transition-all mt-auto">تمت المباشرة</button>
+        </div>
+    </div>
+</div>
+
+<div id="zModal" class="hidden fixed inset-0 bg-black/95 backdrop-blur-md flex items-center justify-center z-[200] p-4 text-right">
+    <div class="bg-[#1f2937] w-full max-w-5xl rounded-[2.5rem] shadow-2xl border border-white/10 overflow-hidden flex flex-col md:flex-row h-[85vh]">
+        <div class="w-full md:w-1/3 bg-black/20 p-6 border-l border-white/5 flex flex-col justify-between">
+            <div>
+                <h3 class="text-gray-400 text-[10px] mb-6 font-bold uppercase tracking-widest border-b border-white/10 pb-2">بيانات المنطقة الحية</h3>
+                <div class="mb-4"><span class="text-[10px] text-gray-500 block uppercase">المنطقة</span><p id="zm-title" class="font-black text-white text-3xl"></p></div>
+                <div class="mb-4"><span class="text-[10px] text-gray-500 block uppercase">القراءة الحالية</span><p id="zm-metric" class="font-mono text-turquoise text-2xl"></p></div>
+                <div class="mb-4"><span class="text-[10px] text-gray-500 block uppercase">عدد العمال</span><p id="zm-count" class="font-black text-white text-4xl">0</p></div>
+            </div>
+            <div class="bg-red-500/10 p-4 rounded-xl border border-red-500/20 text-center"><span class="block text-red-500 font-bold text-sm mb-1 animate-pulse">⚠️ حالة طوارئ قصوى</span><span class="text-[10px] text-red-300">يجب إخلاء المنطقة فوراً</span></div>
+        </div>
+        <div class="flex-1 p-8 flex flex-col gap-6 overflow-y-auto">
+            <div class="flex justify-between items-center"><h2 class="text-2xl font-black text-white">غرفة عمليات الإخلاء</h2><button onclick="clsZM()" class="text-gray-400 text-2xl hover:text-white">✕</button></div>
+            <div class="bg-black/30 p-6 rounded-3xl border border-white/5 flex-1 min-h-[200px]">
+                <h4 class="text-xs font-bold text-gray-400 mb-4 flex justify-between"><span>قائمة العمال (تتبع حي)</span><span class="text-turquoise text-[10px]">Connected via Satellite</span></h4>
+                <div id="zm-list" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
+            </div>
+            <div class="bg-[#6842E2]/10 p-5 rounded-2xl border border-[#6842E2]/20"><h4 class="font-bold text-[#6842E2] text-[11px] mb-2">🤖 AI Strategy:</h4><div id="zm-ai" class="text-sm text-gray-300 italic leading-relaxed"></div></div>
+            <button onclick="finZ()" class="w-full bg-[#10b981] hover:bg-emerald-400 text-white font-black py-5 rounded-2xl shadow-2xl transition-all text-lg">تأكيد الإخلاء وإغلاق البلاغ</button>
+        </div>
+    </div>
+</div>
+
+<div id="iotModal" class="hidden fixed inset-0 bg-black/95 backdrop-blur-md flex items-center justify-center z-[300] p-4 text-right">
+    <div class="bg-[#1f2937] w-full max-w-4xl rounded-[2rem] shadow-2xl border border-white/10 overflow-hidden flex flex-col h-[85vh]">
+        <div class="p-6 border-b border-white/5 flex justify-between items-center bg-black/20">
+            <div><h2 class="text-2xl font-black text-white">مدير أجهزة إنترنت الأشياء (IoT Manager)</h2><p class="text-[11px] text-gray-400">مراقبة البنية التحتية للحساسات والأجهزة القابلة للارتداء</p></div>
+            <button onclick="document.getElementById('iotModal').classList.add('hidden')" class="text-gray-400 text-2xl">✕</button>
+        </div>
+        <div class="p-4 flex gap-2 border-b border-white/5 bg-white/5">
+            <button onclick="filterIoT('all')" class="px-4 py-2 rounded-lg bg-white/10 text-xs font-bold text-white hover:bg-white/20">كافة الأجهزة</button>
+            <button onclick="filterIoT('inactive')" class="px-4 py-2 rounded-lg bg-red-500/20 text-xs font-bold text-red-400 border border-red-500/30 hover:bg-red-500/30">⚠️ انقطاع (>15د)</button>
+            <button onclick="filterIoT('maintenance')" class="px-4 py-2 rounded-lg bg-orange-500/20 text-xs font-bold text-orange-400 border border-orange-500/30 hover:bg-orange-500/30">🛠️ صيانة دورية</button>
+        </div>
+        <div class="flex-1 overflow-y-auto custom-scroll p-6">
+            <table class="w-full text-[11px] text-center">
+                <thead class="bg-black/20 sticky top-0 text-turquoise"><tr><th class="p-3">معرف الجهاز</th><th class="p-3">النوع</th><th class="p-3">الحالة</th><th class="p-3">آخر تحديث</th><th class="p-3">قوة الإشارة</th><th class="p-3">البطارية</th></tr></thead>
+                <tbody id="iotListBody" class="divide-y divide-white/5 text-gray-300"></tbody>
+            </table>
+        </div>
+        <div class="p-6 bg-black/30 border-t border-white/5">
+            <h4 class="font-bold text-turquoise text-xs mb-2 flex items-center gap-2">🤖 تقرير الذكاء الاصطناعي للبنية التحتية:</h4>
+            <p id="iot-ai-report" class="text-[11px] text-gray-300 italic leading-relaxed"></p>
         </div>
     </div>
 </div>
 
 <script>
-// --- البيانات الأساسية ---
-let currentWFilter = 'active';
-let currentZFilter = 'active';
-let wInterval; let zInterval; let activeWorker; let activeZone;
+// --- GLOBAL DATA ---
+let wFil='active', zFil='active', wInt, zInt, curW, curZ;
 
 let workers = [
     { id: 101, name: "خالد أنس", severity: "critical", alert: "نبض حرج", zone: "Zone A", time: "08:12", sup: "م. عبدالله", medical: "ضغط مزمن", steps: 8420, x: 30, y: 40, status: 'active' },
     { id: 102, name: "أحمد سالم", severity: "warning", alert: "إجهاد حراري", zone: "Zone C", time: "08:45", sup: "م. سلطان", medical: "سليم", steps: 12104, x: 70, y: 20, status: 'active' },
-    { id: 105, name: "سلطان منصور", severity: "simple", alert: "تعب عام", zone: "Zone D", time: "09:20", sup: "م. سلطان", medical: "سليم", steps: 15200, x: 80, y: 50, status: 'active' }
+    { id: 103, name: "ياسر رائد", severity: "warning", alert: "تسارع تنفس", zone: "Zone E", time: "09:15", sup: "م. رائد", medical: "ربو", steps: 9800, x: 20, y: 60, status: 'active' },
+    { id: 104, name: "سعد جمال", severity: "warning", alert: "ارتفاع ضغط", zone: "Zone B", time: "09:02", sup: "م. فيصل", medical: "سكري", steps: 5300, x: 50, y: 80, status: 'active' },
+    { id: 105, name: "سلطان منصور", severity: "simple", alert: "تعب عام", zone: "Zone D", time: "09:20", sup: "م. سلطان", medical: "سليم", steps: 15200, x: 80, y: 50, status: 'active' },
+    { id: 106, name: "ماجد سامي", severity: "simple", alert: "قلق حركي", zone: "Zone A", time: "09:40", sup: "م. عبدالله", medical: "سليم", steps: 11000, x: 40, y: 70, status: 'active' },
+    { id: 107, name: "فيصل وليد", severity: "simple", alert: "إرهاق خفيف", zone: "Zone B", time: "09:50", sup: "م. فيصل", medical: "سليم", steps: 4100, x: 10, y: 10, status: 'active' }
 ];
 
 let zones = [
-    { id: 'gas', title: "Zone A", sub: "تسريب غاز CH4", metric: "920 PPM", risk: "92%", status: 'active', workers: ["أحمد علي", "فهد خالد", "سلمان منصور", "وائل محمد"], ai: "🚨 <b>تحليل:</b> خطر انفجار عالي بسبب تركيز الميثان.<br>✅ <b>الإجراء:</b> قطع التيار الكهربائي فوراً." },
-    { id: 'heat', title: "Zone C", sub: "ارتفاع حرارة", metric: "58°C", risk: "78%", status: 'active', workers: ["سعد جمال", "ماجد سامي", "فيصل وليد"], ai: "⚠️ <b>تحليل:</b> خطر إجهاد حراري.<br>✅ <b>الإجراء:</b> إخلاء المنطقة وتفعيل التبريد الإضافي." }
+    { id: 'gas', title: "Zone A", sub: "تسريب غاز CH4", metric: "920 PPM", risk: "92%", status: 'active', workers: ["أحمد علي", "فهد خالد", "سلمان منصور", "وائل محمد"], ai: "🚨 <b>تحليل الخطر:</b> تجاوز تركيز الميثان الحد الانفجاري الأدنى (LEL).<br>✅ <b>الإجراء:</b> إخلاء فوري، عزل كهربائي، وتفعيل أنظمة الغمر." },
+    { id: 'heat', title: "Zone C", sub: "ارتفاع حرارة", metric: "58°C", risk: "78%", status: 'active', workers: ["سعد جمال", "ماجد سامي", "فيصل وليد"], ai: "⚠️ <b>تحليل الخطر:</b> فشل في نظام التبريد المركزي.<br>✅ <b>الإجراء:</b> تفعيل وحدات التبريد الاحتياطية وتقليل الحمل التشغيلي." }
 ];
 
-const regions = {
-    'A': { injuries: 4, alerts: 156, risk: 88, ai: "🚨 <b>تحليل:</b> القطاع A الأكثر عرضة للحرائق.<br>✅ <b>التوصية:</b> تحديث أنظمة الإخماد التلقائي." },
-    'B': { injuries: 1, alerts: 42, risk: 15, ai: "✅ <b>تحليل:</b> بيئة عمل مثالية ومستقرة." },
-    'C': { injuries: 7, alerts: 230, risk: 94, ai: "🔥 <b>تحليل:</b> ضغط عمل هائل في المنطقة C.<br>✅ <b>التوصية:</b> زيادة عدد فترات الراحة." },
-    'D': { injuries: 2, alerts: 88, risk: 45, ai: "⚠️ <b>تحليل:</b> رصد تلوث هوائي عابر." },
-    'E': { injuries: 0, alerts: 12, risk: 5, ai: "💎 <b>تحليل:</b> منطقة آمنة بالكامل." }
+const regs = {
+    'A': { injuries: 4, alerts: 156, chem: 80, mech: 20, comp: "72%", ai: "🚨 <b>تقييم المخاطر:</b> تكرار تسربات الغاز يشير إلى تآكل في صمامات الضغط العالي.<br>✅ <b>التوصية:</b> إجراء فحص بالموجات فوق الصوتية لشبكة الأنابيب." },
+    'B': { injuries: 1, alerts: 42, chem: 10, mech: 30, comp: "95%", ai: "✅ <b>التحليل التشغيلي:</b> العمليات تسير ضمن المعايير الآمنة.<br>✅ <b>التوصية:</b> جدولة صيانة وقائية للمعدات." },
+    'C': { injuries: 7, alerts: 230, chem: 60, mech: 40, comp: "65%", ai: "🔥 <b>تنبيه حرج:</b> خطر الإجهاد الحراري مرتفع.<br>✅ <b>التوصية:</b> تطبيق نظام نوبات العمل القصيرة وتركيب عوازل." },
+    'D': { injuries: 2, alerts: 88, chem: 20, mech: 60, comp: "88%", ai: "⚠️ <b>ملاحظة فنية:</b> جودة الهواء تتذبذب.<br>✅ <b>التوصية:</b> فحص مرشحات الهواء وضبط التهوية." },
+    'E': { injuries: 0, alerts: 12, chem: 5, mech: 5, comp: "99%", ai: "💎 <b>الحالة العامة:</b> أداء سلامة مثالي.<br>✅ <b>التوصية:</b> اعتماد الإجراءات كنموذج مرجعي." }
 };
 
-// --- المربع الأول ---
-function renderWorkers() {
-    const tbody = document.getElementById("workersList");
-    const filtered = workers.filter(w => w.status === currentWFilter);
-    tbody.innerHTML = filtered.map(w => `
-        <tr class="border-b border-white/5">
-            <td class="p-4 font-mono text-turquoise">${w.id}</td>
-            <td class="p-4 text-right font-bold text-gray-200">${w.name}</td>
-            <td class="p-4 font-bold text-${w.severity==='critical'?'red':w.severity==='warning'?'orange':'yellow'}-500">${w.alert}</td>
-            <td class="p-4">${w.zone}</td>
-            <td class="p-4 text-gray-500">${w.time}</td>
-            <td class="p-4"><button onclick="openWorkerModal(${w.id})" class="bg-[#fb923c] text-white px-4 py-1.5 rounded-xl font-bold">عرض</button></td>
+const iotDevices = [
+    { id: "S-101", type: "حساس غاز", status: "active", last: "منذ دقيقة", batt: "98%", signal: "ممتاز" },
+    { id: "W-202", type: "ساعة ذكية", status: "inactive", last: "منذ 18 دقيقة", batt: "12%", signal: "مفقود" },
+    { id: "S-105", type: "حساس حرارة", status: "maintenance", last: "منذ دقيقتين", batt: "40%", signal: "ضعيف" },
+    { id: "W-303", type: "ساعة ذكية", status: "inactive", last: "منذ 45 دقيقة", batt: "0%", signal: "مفقود" },
+    { id: "S-200", type: "حساس اهتزاز", status: "active", last: "الآن", batt: "100%", signal: "جيد جداً" },
+    { id: "G-001", type: "بوابة (Gateway)", status: "maintenance", last: "منذ 5 دقائق", batt: "تغذية خارجية", signal: "جيد" }, 
+    { id: "W-404", type: "ساعة ذكية", status: "active", last: "منذ 3 دقائق", batt: "85%", signal: "ممتاز" }
+];
+
+// --- LOGIC ---
+function rendW() {
+    document.getElementById("wList").innerHTML = workers.filter(w=>w.status===wFil).map(w=>`
+    <tr class="border-b border-white/5"><td class="p-4 font-mono text-turquoise">${w.id}</td><td class="p-4 text-right font-bold text-gray-200">${w.name}</td><td class="p-4 font-bold text-${w.severity==='critical'?'red':w.severity==='warning'?'orange':'yellow'}-500">${w.alert}</td><td class="p-4">${w.zone}</td><td class="p-4">${w.time}</td><td class="p-4"><button onclick="opnW(${w.id})" class="bg-[#fb923c] text-white px-3 py-1 rounded-lg font-bold text-xs">عرض</button></td></tr>`).join("");
+}
+function opnW(id) {
+    curW = workers.find(w=>w.id===id);
+    document.getElementById("wm-name").innerText = curW.name;
+    document.getElementById("wm-id").innerText = "ID: "+curW.id;
+    document.getElementById("wm-sup").innerText = curW.sup;
+    document.getElementById("wm-med").innerText = curW.medical;
+    document.getElementById("wm-mark").style.left = curW.x+"%"; document.getElementById("wm-mark").style.top = curW.y+"%";
+    document.getElementById("wm-ai").innerHTML = curW.severity==='critical'?"🚨 <b>تحذير:</b> اضطراب حاد في المؤشرات الحيوية.":"ℹ️ <b>مراقبة:</b> المؤشرات ضمن النطاق.";
+    updW(); clearInterval(wInt); wInt = setInterval(updW, 3000);
+    document.getElementById("wModal").classList.remove("hidden");
+}
+function updW() {
+    if(!curW) return;
+    document.getElementById("wm-bpm").innerText = (curW.severity==='critical'?120:75)+Math.floor(Math.random()*6);
+    document.getElementById("wm-temp").innerText = (curW.severity==='warning'?38.4:37.0+Math.random()).toFixed(1);
+    document.getElementById("wm-steps").innerText = (curW.steps+=1).toLocaleString();
+    document.getElementById("wm-kcal").innerText = Math.floor(curW.steps/20);
+}
+function switchWFilter(f) {
+    wFil = f==='active'?'active':'completed';
+    document.getElementById('bw-act').className = wFil==='active'?"flex-1 py-2 text-[11px] font-bold rounded-xl bg-purple-blue text-white shadow-lg":"flex-1 py-2 text-[11px] font-bold rounded-xl bg-white/5 text-gray-400";
+    document.getElementById('bw-done').className = wFil==='completed'?"flex-1 py-2 text-[11px] font-bold rounded-xl bg-purple-blue text-white shadow-lg":"flex-1 py-2 text-[11px] font-bold rounded-xl bg-white/5 text-gray-400";
+    rendW();
+}
+function finW() { curW.status='completed'; clsWM(); rendW(); }
+function clsWM() { clearInterval(wInt); document.getElementById("wModal").classList.add("hidden"); }
+
+function rendZ() {
+    document.getElementById("zList").innerHTML = zones.filter(z=>z.status===zFil).map(z=>`
+    <tr class="border-b border-white/5"><td class="p-4 font-bold text-white">${z.title}</td><td class="p-4 text-right">${z.sub}</td><td class="p-4 text-red-500 font-bold">${z.risk}</td><td class="p-4 text-turquoise font-bold">${z.workers.length}</td><td class="p-4"><button onclick="opnZ('${z.id}')" class="bg-[#fb923c] text-white px-3 py-1 rounded-lg font-bold text-xs">تحليل</button></td></tr>`).join("");
+}
+function opnZ(id) {
+    curZ = zones.find(z=>z.id===id);
+    document.getElementById("zm-title").innerText = curZ.title;
+    document.getElementById("zm-metric").innerText = curZ.metric;
+    document.getElementById("zm-ai").innerHTML = curZ.ai;
+    let temp = [...curZ.workers];
+    updZList(temp);
+    document.getElementById("zModal").classList.remove("hidden");
+    clearInterval(zInt); zInt = setInterval(()=>{ if(temp.length>0){ temp.pop(); updZList(temp); } else clearInterval(zInt); }, 3000);
+}
+function updZList(l) {
+    document.getElementById("zm-count").innerText = l.length;
+    document.getElementById("zm-list").innerHTML = l.length===0 ? "<p class='col-span-full text-center text-emerald-400 font-bold bg-emerald-500/10 p-4 rounded-xl'>✅ تم إخلاء المنطقة بالكامل</p>" : l.map(w=>`<div class="bg-white/5 p-3 rounded-xl border border-white/10 text-xs text-white flex justify-between"><span>${w}</span><span class="w-2 h-2 bg-turquoise rounded-full animate-pulse"></span></div>`).join("");
+}
+function switchZFilter(f) {
+    zFil = f==='active'?'active':'completed';
+    document.getElementById('bz-act').className = zFil==='active'?"flex-1 py-2 text-[11px] font-bold rounded-xl bg-purple-blue text-white shadow-lg":"flex-1 py-2 text-[11px] font-bold rounded-xl bg-white/5 text-gray-400";
+    document.getElementById('bz-done').className = zFil==='completed'?"flex-1 py-2 text-[11px] font-bold rounded-xl bg-purple-blue text-white shadow-lg":"flex-1 py-2 text-[11px] font-bold rounded-xl bg-white/5 text-gray-400";
+    rendZ();
+}
+function finZ() { curZ.status='completed'; clsZM(); rendZ(); }
+function clsZM() { clearInterval(zInt); document.getElementById("zModal").classList.add("hidden"); }
+
+function loadReg(r) {
+    const d = regs[r];
+    document.getElementById('r-inj').innerText = d.injuries;
+    document.getElementById('r-alt').innerText = d.alerts;
+    document.getElementById('r-comp').innerText = d.comp;
+    document.getElementById('r-chem-val').innerText = d.chem+"%";
+    document.getElementById('r-chem-bar').style.width = d.chem+"%";
+    document.getElementById('r-mech-val').innerText = d.mech+"%";
+    document.getElementById('r-mech-bar').style.width = d.mech+"%";
+    document.getElementById('r-ai').innerHTML = d.ai;
+}
+
+function openIoTDash() { filterIoT('all'); document.getElementById("iotModal").classList.remove("hidden"); }
+function filterIoT(type) {
+    let filtered = [];
+    let aiText = "";
+    if (type === 'all') { filtered = iotDevices; aiText = "ℹ️ <b>نظرة عامة:</b> الشبكة مستقرة."; }
+    else if (type === 'inactive') { filtered = iotDevices.filter(d => d.status === 'inactive'); aiText = "⚠️ <b>مشكلة:</b> انقطاع اتصال بـ 3 أجهزة."; }
+    else if (type === 'maintenance') { filtered = iotDevices.filter(d => d.status === 'maintenance'); aiText = "🛠️ <b>صيانة:</b> أجهزة تحتاج معايرة."; }
+    document.getElementById("iot-ai-report").innerHTML = aiText;
+    document.getElementById("iotListBody").innerHTML = filtered.map(d => `
+        <tr class="border-b border-white/5 hover:bg-white/5">
+            <td class="p-3 font-mono text-turquoise">${d.id}</td>
+            <td class="p-3 text-white">${d.type}</td>
+            <td class="p-3"><span class="px-2 py-1 rounded text-[10px] font-bold ${d.status==='active'?'bg-emerald-500/20 text-emerald-500':d.status==='inactive'?'bg-red-500/20 text-red-500':'bg-orange-500/20 text-orange-500'}">${d.status === 'active' ? 'متصل' : d.status === 'inactive' ? 'منقطع' : 'صيانة'}</span></td>
+            <td class="p-3 text-gray-400">${d.last}</td>
+            <td class="p-3 text-gray-300 font-mono text-[10px]">${d.signal}</td>
+            <td class="p-3 font-bold ${parseInt(d.batt)<20?'text-red-500':'text-emerald-500'}">${d.batt}</td>
+            <td class="p-3"><button class="text-xs bg-white/10 px-2 py-1 rounded hover:bg-white/20 text-white">فحص</button></td>
         </tr>`).join("");
 }
 
-function openWorkerModal(id) {
-    activeWorker = workers.find(w => w.id === id);
-    document.getElementById("w-modal-name").innerText = activeWorker.name;
-    document.getElementById("w-modal-sup").innerText = activeWorker.sup;
-    document.getElementById("w-modal-med").innerText = activeWorker.medical;
-    document.getElementById("w-modal-marker").style.left = activeWorker.x + "%";
-    document.getElementById("w-modal-marker").style.top = activeWorker.y + "%";
-    document.getElementById("w-live-ai").innerHTML = activeWorker.severity === 'critical' ? "🚨 خطر حاد: تسارع نبض لمريض ضغط. استدعِ المشرف فوراً." : "ℹ️ حالة مستقرة مع مراقبة الإرهاق.";
+// Executive Dashboard Logic
+function openExecDash() { 
+    updateExecTime('1M'); 
+    document.getElementById('execModal').classList.remove('hidden'); 
+}
+function updateExecTime(range) {
+    // Simulate Random Data for Wow Effect
+    document.getElementById('kpi-score').innerText = Math.floor(88 + Math.random() * 10) + "%";
+    document.getElementById('kpi-accidents').innerText = Math.floor(Math.random() * 15);
+    document.getElementById('kpi-hours').innerText = Math.floor(10 + Math.random() * 5) + "k";
+    document.getElementById('kpi-cost').innerText = "$" + Math.floor(30 + Math.random() * 20) + "k";
     
-    updateWorkerStats();
-    clearInterval(wInterval);
-    wInterval = setInterval(updateWorkerStats, 3000);
-    document.getElementById("workerModal").classList.remove("hidden");
+    // Simulate Chart Bars
+    const barsContainer = document.getElementById('chart-bars');
+    barsContainer.innerHTML = '';
+    for(let i=0; i<12; i++) {
+        let h = Math.floor(20 + Math.random() * 80);
+        barsContainer.innerHTML += `<div class="bar" style="height:${h}%; animation: grow 0.5s ease-out ${i*0.05}s backwards;"></div>`;
+    }
 }
 
-function updateWorkerStats() {
-    if(!activeWorker) return;
-    document.getElementById("w-live-bpm").innerText = (activeWorker.severity==='critical'?120:78) + Math.floor(Math.random()*6);
-    document.getElementById("w-live-temp").innerText = (activeWorker.severity==='warning'?38.4:37.1 + Math.random()).toFixed(1);
-    document.getElementById("w-live-steps").innerText = (activeWorker.steps += 1).toLocaleString();
-    document.getElementById("w-live-kcal").innerText = Math.floor(activeWorker.steps / 20);
-}
-
-function switchWorkerFilter(f) {
-    currentWFilter = f;
-    document.getElementById('btn-w-active').className = f==='active'?"flex-1 py-2 text-[11px] font-bold rounded-xl bg-purple-blue text-white shadow-lg":"flex-1 py-2 text-[11px] font-bold rounded-xl bg-white/5 text-gray-400";
-    document.getElementById('btn-w-completed').className = f==='completed'?"flex-1 py-2 text-[11px] font-bold rounded-xl bg-purple-blue text-white shadow-lg":"flex-1 py-2 text-[11px] font-bold rounded-xl bg-white/5 text-gray-400";
-    renderWorkers();
-}
-
-function markWorkerSafe() { activeWorker.status = 'completed'; closeWorkerModal(); renderWorkers(); }
-function closeWorkerModal() { clearInterval(wInterval); document.getElementById("workerModal").classList.add("hidden"); }
-
-// --- المربع الثاني ---
-function renderZones() {
-    const tbody = document.getElementById("zonesList");
-    const filtered = zones.filter(z => z.status === currentZFilter);
-    tbody.innerHTML = filtered.map(z => `
-        <tr class="border-b border-white/5">
-            <td class="p-4 font-bold text-white">${z.title}</td>
-            <td class="p-4 text-right">${z.sub}</td>
-            <td class="p-4 font-bold text-red-500">${z.risk}</td>
-            <td class="p-4 text-turquoise font-bold">${z.workers.length}</td>
-            <td class="p-4"><button onclick="openZoneModal('${z.id}')" class="bg-[#fb923c] text-white px-4 py-1.5 rounded-xl font-bold">تحليل</button></td>
-        </tr>`).join("");
-}
-
-function openZoneModal(id) {
-    activeZone = zones.find(z => z.id === id);
-    document.getElementById("z-modal-title").innerText = activeZone.title;
-    document.getElementById("z-modal-metric").innerText = activeZone.metric;
-    document.getElementById("z-modal-ai").innerHTML = activeZone.ai;
-    document.getElementById("z-complete-btn").style.display = activeZone.status === 'completed' ? 'none' : 'block';
-    
-    let tempW = [...activeZone.workers];
-    updateEvacDisplay(tempW);
-    
-    document.getElementById("zoneModal").classList.remove("hidden");
-    clearInterval(zInterval);
-    zInterval = setInterval(() => { if(tempW.length > 0) { tempW.pop(); updateEvacDisplay(tempW); } else clearInterval(zInterval); }, 3000);
-}
-
-function updateEvacDisplay(list) {
-    document.getElementById("z-modal-count").innerText = list.length;
-    const box = document.getElementById("z-evac-list");
-    if(list.length === 0) { box.innerHTML = "<p class='col-span-full text-center text-emerald-400 font-bold p-4 bg-emerald-500/10 rounded-xl'>✅ تم الإخلاء بالكامل</p>"; return; }
-    box.innerHTML = list.map(w => `<div class="bg-white/5 p-3 rounded-xl border border-white/10 text-[10px] text-white flex justify-between"><span>${w}</span><span class="w-2 h-2 bg-turquoise rounded-full animate-pulse"></span></div>`).join("");
-}
-
-function switchZoneFilter(f) {
-    currentZFilter = f;
-    document.getElementById('btn-z-active').className = f==='active'?"flex-1 py-2 text-[11px] font-bold rounded-xl bg-purple-blue text-white shadow-lg":"flex-1 py-2 text-[11px] font-bold rounded-xl bg-white/5 text-gray-400";
-    document.getElementById('btn-z-completed').className = f==='completed'?"flex-1 py-2 text-[11px] font-bold rounded-xl bg-purple-blue text-white shadow-lg":"flex-1 py-2 text-[11px] font-bold rounded-xl bg-white/5 text-gray-400";
-    renderZones();
-}
-
-function markZoneSafe() { activeZone.status = 'completed'; closeZoneModal(); renderZones(); }
-function closeZoneModal() { clearInterval(zInterval); document.getElementById("zoneModal").classList.add("hidden"); }
-
-// --- المربع الثالث ---
-function loadRegionStats(reg) {
-    const data = regions[reg];
-    document.getElementById('reg-injuries').innerText = data.injuries;
-    document.getElementById('reg-alerts').innerText = data.alerts;
-    document.getElementById('reg-risk-val').innerText = data.risk + "%";
-    document.getElementById('reg-risk-bar').style.width = data.risk + "%";
-    document.getElementById('reg-ai-msg').innerHTML = data.ai;
-}
-
-// البدء
-renderWorkers();
-renderZones();
-loadRegionStats('A');
+// Init
+rendW();
+rendZ();
+loadReg('A');
 </script>
 </body>
 </html>
